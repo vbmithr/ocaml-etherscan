@@ -11,18 +11,19 @@ let rec run offset page ((nb_e, nb_ok, v_e, v_ok) as acc) =
     error "%s" (Http_error.to_string err) ;
     Deferred.return acc
   | Ok ts ->
-    let ts_error, ts_ok = List.partition_tf ts ~f:(fun t -> t.isError) in
-    let nb_e' = List.length ts_error in
-    let nb_ok' = List.length ts_ok in
-    let v_e' = List.fold_left ts_error ~init:0. ~f:(fun a t -> a +. t.value) in
-    let v_ok' = List.fold_left ts_ok ~init:0. ~f:(fun a t -> a +. t.value) in
-    let acc = (nb_e + nb_e', nb_ok + nb_ok', v_e +. v_e', v_ok +. v_ok') in
-    let len = List.length ts in
+    let ((nb_e', nb_ok', v_e', v_ok') as acc') =
+      List.fold_left ts ~init:acc ~f:begin fun (nb_e, nb_ok, v_e, v_ok) t ->
+        if t.Transaction.isError then
+          (succ nb_e, nb_ok, v_e +. t.value, v_ok)
+        else
+          (nb_e, succ nb_ok, v_e, v_ok +. t.value)
+      end in
+    let len = nb_e' + nb_ok' - nb_e - nb_ok in
     debug "Loaded %d transactions, page %d" len page ;
     if len = offset then
-      run offset (succ page) acc
+      run offset (succ page) acc'
     else
-      Deferred.return acc
+      Deferred.return acc'
 
 let main offset () =
   set_level `Debug ;
