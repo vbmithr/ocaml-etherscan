@@ -1,0 +1,10 @@
+(executables
+ ((names (test tezos))
+  (public_names (- tezos))
+  ;; (preprocess (pps (ppx_sexp_conv)))
+  (libraries (etherscan))))
+
+(alias
+ ((name    runtest)
+  (deps    (test.exe))
+  (action  (run ${<}))))

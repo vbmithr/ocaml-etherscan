@@ -1,0 +1,6 @@
+(library
+ ((name        etherscan)
+  (preprocess (pps (ppx_sexp_conv)))
+  (public_name etherscan)
+  ;; (modules (types http))
+  (libraries (hex core async cohttp-async ocplib-json-typed yojson))))
